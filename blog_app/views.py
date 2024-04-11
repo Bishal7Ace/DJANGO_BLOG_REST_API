@@ -9,6 +9,18 @@ from rest_framework import status
 from rest_framework.views import APIView
 # Create your views here.
 
+class CategoryListView(APIView):
+    def get(self, request):
+        all_category = Category.objects.all()
+        serializers = CategorySerializer(all_category, many=True)
+        return Response(serializers.data)
+        
+class CategoryDetailView(APIView):
+    def get(self, request, pk):
+        single_category = Category.objects.get(pk=pk)
+        serializers = CategorySerializer(single_category)
+        return Response(serializers.data)
+    
 class BlogListView(APIView):
     def get(self, request):
         all_blogs = Blog.objects.filter(is_public = True)
