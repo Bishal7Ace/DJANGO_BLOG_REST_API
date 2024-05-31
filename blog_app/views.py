@@ -1,94 +1,118 @@
-from django.shortcuts import render
-from django.http import JsonResponse
 from .models import *
 from .serializer import *
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework import status
+from django.shortcuts import get_object_or_404
+from rest_framework import  generics
 
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
+
+from .permissions import *
 # Create your views here.
 
-class CategoryListView(APIView):
-    def get(self, request):
-        all_category = Category.objects.all()
-        serializers = CategorySerializer(all_category, many=True, context={'request': request})
-        return Response(serializers.data)
+class CategoryListgCreateView(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUserOrReadOnly]
+    
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = CategorySerializer(queryset, many=True, context={request: request})
         
-class CategoryDetailView(APIView):
-    def get(self, request, pk):
-        single_category = Category.objects.get(pk=pk)
-        serializers = CategorySerializer(single_category, context={'request': request})
-        return Response(serializers.data)
-    
-class BlogListView(APIView):
-    def get(self, request):
-        all_blogs = Blog.objects.filter(is_public = True)
-        serializer = BlogSerializer(all_blogs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    def post(self, request):
-        serializer = BlogSerializer(data=request.data)
-        if serializer.is_valid():
-           serializer.save()
-           return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if queryset.exists():
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-#GET, PUT, DELETE
-class BlogDetailView(APIView):
-    def get(self, request, pk):
-        blog = Blog.objects.get(is_public = True, pk=pk)
-        serializer = BlogSerializer(blog)
-        return Response(serializer.data)
-    
-    def put(self, request, pk):
-        blog = Blog.objects.get(pk=pk)
-        serializer = BlogSerializer(blog, data=request.data)
-        if serializer.is_valid():
-           serializer.save()
-           return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, pk):
-        blog = Blog.objects.get(pk=pk)
-        blog.delete()
-        return Response(status=status.HTTP_200_OK)
+            return Response({'Message':'No category found'}, status=status.HTTP_204_NO_CONTENT)
         
-# @api_view(['GET', 'POST'])
-# def blog_list(request):
-#     if request.method == "GET":
-#        all_blogs = Blog.objects.filter(is_public = True)
-#        serializer = BlogSerializer(all_blogs, many=True)
-#        return Response(serializer.data, status=status.HTTP_200_OK)
+class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    liikup_filed = 'id' #slug
+    permission_classes = [IsAdminUserOrReadOnly]
    
-#     if request.method == "POST":
-#         serializer = BlogSerializer(data=request.data)
-#         if serializer.is_valid():
-#            serializer.save()
-#            return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# @api_view(['GET','POST', 'DELETE'])
-# def blog_detail(request, pk):
-#     if request.method == "GET":
-#         blog = Blog.objects.get(is_public = True, pk=pk)
-#         serializer = BlogSerializer(blog)
-#         return Response(serializer.data)
-    
-#     if request.method == "POST":
-#         blog = Blog.objects.get(pk=pk)
-#         serializer = BlogSerializer(blog, data=request.data)
-#         if serializer.is_valid():
-#            serializer.save()
-#            return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        if instance:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'Message':'No Blog Found'}, status=status.HTTP_404_NOT_FOUND)
         
-#     if request.method == "DELETE":
-#         blog = Blog.objects.get(pk=pk)
-#         blog.delete()
-#         return Response(status=status.HTTP_200_OK)
+class BlogListCreateView(generics.ListCreateAPIView):
+    queryset = Blog.objects.filter(is_public=True)
+    serializer_class = BlogSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def list(self, request, *args, **kwargs):
+        queryset =self.get_queryset()
+        serializer = BlogSerializer(queryset, many=True, context={request: request})
+        
+        if queryset.exists():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'Message':'No blogs found'}, status=status.HTTP_204_NO_CONTENT)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = BlogSerializer(data=request.data, context= {'request':request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save(author=self.request.user)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Blog.objects.filter(is_public=True)
+    serializer_class = BlogSerializer
+    liikup_filed = 'id' #slug
+    permission_classes = [IsOwnerOrReadOnly]
+    
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        if instance:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'Message':'No Blog Found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class BlogCommentListCreateView(generics.ListCreateAPIView):
+    queryset = BlogComment.objects.all()
+    serializer_class = BlogCommentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        blog_id = self.kwargs.get('blog_id')
+        return BlogComment.objects.filter(blog_id=blog_id)
+    
+    def perform_create(self, serializer):
+        blog_id = self.kwargs.get('blog_id')
+        blog = get_object_or_404(Blog, id=blog_id)
+        if BlogComment.objects.filter(blog=blog, author=self.request.user).exists():
+            raise serializers.ValidationError({'Message':'You have already added comment on this blog}'})
+        serializer.save(author=self.request.user, blog=blog)
+        
+class BlogCommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = BlogComment.objects.all()
+    serializer_class = BlogCommentSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+    
+    def get_object(self):
+        comment_id = self.kwargs.get('comment_id')
+        comment = get_object_or_404(BlogComment, id = comment_id)
+        
+        blog_id = self.kwargs.get("blog_id")
+        if comment.blog.id != blog_id:
+            raise serializers.ValidationError({"Message": "This comment is not related to the requested blog"}, status=status.HTTP_401_UNAUTHORIZED)
+        return comment
+    
+    def delete(self, request, *args, **kwargs):
+        comment = self.get_object()
+        if comment.author != request.user:
+            raise serializers.ValidationError({"Message": "You are not authorized to perform this action"}, status=status.HTTP_401_UNAUTHORIZED)
+        return super().delete(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        comment = self.get_object()
+        
+        if comment.author != request.user:
+            raise serializers.ValidationError({"Message": "You are not authorized to perform this action"}, status=status.HTTP_401_UNAUTHORIZED)
+        return super().put(request, *args, **kwargs)
