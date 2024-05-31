@@ -33,6 +33,7 @@ class BlogCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogComment
         fields = "__all__"
-    
-
+        
+        
+            
     
