@@ -5,13 +5,26 @@ from rest_framework import status
 from .serializers import *
 from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
 
-# Create your views here.
-@api_view(["POST",])
+
+# @api_view(["POST",])
+# def logout_user(request):
+#     if request.method == "POST":
+#         request.user.auth_token.delete()
+#         return Response({"Message":"You are logged out"}, status=status.HTTP_200_OK)
+
+@api_view(["POST"])
 def logout_user(request):
     if request.method == "POST":
-        request.user.auth_token.delete()
-        return Response({"Message":"You are logged out"}, status=status.HTTP_200_OK)
+        if request.user.is_authenticated:
+            try:
+                request.user.auth_token.delete()
+                return Response({"Message": "You are logged out"}, status=status.HTTP_200_OK)
+            except Token.DoesNotExist:
+                return Response({"Message": "Token does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"Message": "User is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(["POST",])
 def user_register_view(request):
