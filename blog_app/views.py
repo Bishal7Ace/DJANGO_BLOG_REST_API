@@ -18,7 +18,7 @@ class CategoryListgCreateView(generics.ListCreateAPIView):
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = CategorySerializer(queryset, many=True, context={request: request})
+        serializer = CategorySerializer(queryset, many=True, context={'request': request})
         
         if queryset.exists():
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -28,7 +28,7 @@ class CategoryListgCreateView(generics.ListCreateAPIView):
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    liikup_filed = 'id' #slug
+    lookup_filed = 'id' #slug
     permission_classes = [IsAdminUserOrReadOnly]
    
     def retrieve(self, request, *args, **kwargs):
@@ -63,7 +63,7 @@ class BlogListCreateView(generics.ListCreateAPIView):
 class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blog.objects.filter(is_public=True)
     serializer_class = BlogSerializer
-    liikup_filed = 'id' #slug
+    lookup_filed = 'id' #slug
     permission_classes = [IsOwnerOrReadOnly]
     
     def retrieve(self, request, *args, **kwargs):
