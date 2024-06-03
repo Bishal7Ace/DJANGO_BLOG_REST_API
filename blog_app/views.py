@@ -7,7 +7,10 @@ from rest_framework import  generics
 
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
 
+from .throttle import *
 from .permissions import *
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 # Create your views here.
 
 class CategoryListgCreateView(generics.ListCreateAPIView):
@@ -40,18 +43,24 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({'Message':'No Blog Found'}, status=status.HTTP_404_NOT_FOUND)
         
 class BlogListCreateView(generics.ListCreateAPIView):
-    queryset = Blog.objects.filter(is_public=True)
+    queryset = Blog.objects.all()
     serializer_class = BlogSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    # permission_classes = [IsAuthenticatedOrReadOnly]
     
-    def list(self, request, *args, **kwargs):
-        queryset =self.get_queryset()
-        serializer = BlogSerializer(queryset, many=True, context={request: request})
+    # throttle_classes = [BlogListCreateViewThrottle]
+    
+    #Filtering
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['category__category_name', 'is_public']
+    search_fields = ['^anime_name', 'anime_description', 'category__category_name',]
+    # def list(self, request, *args, **kwargs):
+    #     queryset =self.get_queryset()
+    #     serializer = BlogSerializer(queryset, many=True, context={request: request})
         
-        if queryset.exists():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({'Message':'No blogs found'}, status=status.HTTP_204_NO_CONTENT)
+    #     if queryset.exists():
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     else:
+    #         return Response({'Message':'No blogs found'}, status=status.HTTP_204_NO_CONTENT)
     
     def create(self, request, *args, **kwargs):
         serializer = BlogSerializer(data=request.data, context= {'request':request})
