@@ -53,14 +53,6 @@ class BlogListCreateView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['category__category_name', 'is_public']
     search_fields = ['^anime_name', 'anime_description', 'category__category_name',]
-    # def list(self, request, *args, **kwargs):
-    #     queryset =self.get_queryset()
-    #     serializer = BlogSerializer(queryset, many=True, context={request: request})
-        
-    #     if queryset.exists():
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     else:
-    #         return Response({'Message':'No blogs found'}, status=status.HTTP_204_NO_CONTENT)
     
     def create(self, request, *args, **kwargs):
         serializer = BlogSerializer(data=request.data, context= {'request':request})
