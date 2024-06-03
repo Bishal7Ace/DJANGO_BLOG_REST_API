@@ -13,7 +13,7 @@ from .permissions import *
 class CategoryListgCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUserOrReadOnly]
     
     
     def list(self, request, *args, **kwargs):
@@ -64,7 +64,7 @@ class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Blog.objects.filter(is_public=True)
     serializer_class = BlogSerializer
     liikup_filed = 'id' #slug
-    # permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -77,7 +77,7 @@ class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
 class BlogCommentListCreateView(generics.ListCreateAPIView):
     queryset = BlogComment.objects.all()
     serializer_class = BlogCommentSerializer
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         blog_id = self.kwargs.get('blog_id')
@@ -93,7 +93,7 @@ class BlogCommentListCreateView(generics.ListCreateAPIView):
 class BlogCommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = BlogComment.objects.all()
     serializer_class = BlogCommentSerializer
-    # permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
     
     def get_object(self):
         comment_id = self.kwargs.get('comment_id')
