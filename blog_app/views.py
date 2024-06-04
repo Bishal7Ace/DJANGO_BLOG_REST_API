@@ -88,7 +88,7 @@ class BlogCommentListCreateView(generics.ListCreateAPIView):
         blog_id = self.kwargs.get('blog_id')
         blog = get_object_or_404(Blog, id=blog_id)
         if BlogComment.objects.filter(blog=blog, author=self.request.user).exists():
-            raise serializers.ValidationError({'Message':'You have already added comment on this blog}'})
+            raise serializers.ValidationError({'Message':'You have already added comment on this blog.'})
         serializer.save(author=self.request.user, blog=blog)
         
 class BlogCommentDetailView(generics.RetrieveUpdateDestroyAPIView):
