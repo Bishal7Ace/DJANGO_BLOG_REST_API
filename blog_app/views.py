@@ -9,9 +9,10 @@ from .throttle import *
 from .permissions import *
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
+from .pagination import BlogListCreatePagination
 # Create your views here.
 
-class CategoryListgCreateView(generics.ListCreateAPIView):
+class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUserOrReadOnly]
@@ -44,12 +45,14 @@ class BlogListCreateView(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    # throttle_classes = [BlogListCreateViewThrottle]
+    throttle_classes = [BlogListCreateViewThrottle]
     
     #Filtering
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category__category_name', 'is_public']
     search_fields = ['^anime_name', 'anime_description', 'category__category_name',]
+    
+    pagination_class = BlogListCreatePagination
     
     def create(self, request, *args, **kwargs):
         serializer = BlogSerializer(data=request.data, context= {'request':request})
@@ -75,7 +78,7 @@ class BlogDetailView(generics.RetrieveUpdateDestroyAPIView):
 class BlogCommentListCreateView(generics.ListCreateAPIView):
     queryset = BlogComment.objects.all()
     serializer_class = BlogCommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
     def get_queryset(self):
         blog_id = self.kwargs.get('blog_id')
