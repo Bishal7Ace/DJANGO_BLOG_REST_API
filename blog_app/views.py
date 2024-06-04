@@ -4,9 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from rest_framework import  generics
-
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, IsAuthenticatedOrReadOnly
-
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from .throttle import *
 from .permissions import *
 from django_filters.rest_framework import DjangoFilterBackend
@@ -45,12 +43,11 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 class BlogListCreateView(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogSerializer
-    # permission_classes = [IsAuthenticatedOrReadOnly]
-    
+    permission_classes = [IsAuthenticatedOrReadOnly]
     # throttle_classes = [BlogListCreateViewThrottle]
     
     #Filtering
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category__category_name', 'is_public']
     search_fields = ['^anime_name', 'anime_description', 'category__category_name',]
     
