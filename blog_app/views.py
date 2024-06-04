@@ -52,7 +52,7 @@ class BlogListCreateView(generics.ListCreateAPIView):
     filterset_fields = ['category__category_name', 'is_public']
     search_fields = ['^anime_name', 'anime_description', 'category__category_name',]
     
-    pagination_class = BlogListCreatePagination
+    # pagination_class = BlogListCreatePagination
     
     def create(self, request, *args, **kwargs):
         serializer = BlogSerializer(data=request.data, context= {'request':request})
