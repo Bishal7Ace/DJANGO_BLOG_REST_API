@@ -40,7 +40,7 @@ class BlogSerializer(serializers.ModelSerializer):
         }
         
 class CategorySerializer(serializers.ModelSerializer):
-    category_blogs = BlogSerializer(many=True, read_only=True)  
+    # category_blogs = BlogSerializer(many=True, read_only=True)  
     category = BlogSerializer(many=True, read_only=True)
     class Meta:
         model = Category

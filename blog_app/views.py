@@ -45,7 +45,7 @@ class BlogListCreateView(generics.ListCreateAPIView):
     queryset = Blog.objects.all()
     serializer_class = BlogSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    throttle_classes = [BlogListCreateViewThrottle]
+    # throttle_classes = [BlogListCreateViewThrottle]
     
     #Filtering
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

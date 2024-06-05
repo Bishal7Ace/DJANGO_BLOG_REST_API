@@ -7,12 +7,6 @@ from rest_framework.authtoken.models import Token
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-# @api_view(["POST",])
-# def logout_user(request):
-#     if request.method == "POST":
-#         request.user.auth_token.delete()
-#         return Response({"Message":"You are logged out"}, status=status.HTTP_200_OK)
-
 @api_view(["POST"])
 def logout_user(request):
     if request.method == "POST":
